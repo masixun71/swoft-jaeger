@@ -1,0 +1,33 @@
+{
+    "name": "extraswoft/jaeger",
+    "type": "library",
+    "keywords": [
+        "php",
+        "swoole",
+        "swoft",
+        "jaeger",
+        "OpenTracing"
+    ],
+    "description": "jaeger-sdk for swoft",
+    "license": "Apache-2.0",
+    "require": {
+        "jukylin/jaeger-php" : "^2.0",
+        "opentracing/opentracing":"1.0.0-beta2",
+        "psr/http-server-handler": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "ExtraSwoft\\Jaeger\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "repositories": {
+        "packagist": {
+            "type": "composer",
+            "url": "https://packagist.laravel-china.org"
+        }
+    },
+    "config": {
+        "secure-http": false
+    }
+}
