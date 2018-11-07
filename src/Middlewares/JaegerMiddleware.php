@@ -31,6 +31,7 @@ class JaegerMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        TracerManager::init();
         $spanContext = GlobalTracer::get()->extract(
             TEXT_MAP,
             RequestContext::getRequest()->getSwooleRequest()->header
@@ -39,13 +40,13 @@ class JaegerMiddleware implements MiddlewareInterface
         GlobalTracer::get()->inject($span->getContext(), TEXT_MAP,
             RequestContext::getRequest()->getSwooleRequest()->header);
 
-        \Swoft::getBean(TracerManager::class)->setServerSpan($span);
+        TracerManager::setServerSpan($span);
 
 
         $response = $handler->handle($request);
 
         $span->finish();
-        \Swoft::getBean(TracerManager::class)->flush();
+        TracerManager::flush();
 
         return $response;
     }

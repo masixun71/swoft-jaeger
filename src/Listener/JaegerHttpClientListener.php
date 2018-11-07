@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace ExtraSwoft\Jaeger\Listener;
 
-
+use OpenTracing\Ext\Tags;
 use ExtraSwoft\Jaeger\Manager\TracerManager;
 use OpenTracing\GlobalTracer;
 use Swoft\Bean\Annotation\Listener;
@@ -12,6 +12,7 @@ use Swoft\Event\EventHandlerInterface;
 use Swoft\Event\EventInterface;
 use Swoft\Exception\Exception;
 use Psr\Http\Message;
+use Psr\Http\Message\ResponseInterface;
 
 
 /**
@@ -31,7 +32,7 @@ class JaegerHttpClientListener implements EventHandlerInterface
      */
     public function handle(EventInterface $event)
     {
-        if (empty(\Swoft::getBean(TracerManager::class)->getServerSpan()))
+        if (empty(TracerManager::getServerSpan()))
         {
             return;
         }
@@ -46,26 +47,31 @@ class JaegerHttpClientListener implements EventHandlerInterface
 
 
             $tags = [
-                'method' => $request->getMethod(),
-                'host' => $uri->getHost(),
-                'port' => $uri->getPort(),
-                'path' => $uri->getPath(),
-                'query' => $uri->getQuery(),
-                'headers' => !empty($request->getHeaders()) ? json_encode($request->getHeaders()) : ''
+                Tags\HTTP_METHOD => $request->getMethod(),
+                Tags\HTTP_URL => $uri->getHost(),
+                'http.port' => $uri->getPort(),
+                'http.path' => $uri->getPath(),
+                'http.query' => $uri->getQuery(),
+                'http.headers' => !empty($request->getHeaders()) ? json_encode($request->getHeaders()) : ''
             ];
 
             if ($request->getMethod() != 'GET')
             {
-                $tags['body'] = $options['body'];
+                $tags['http.body'] = $options['body'];
             }
-
 
             $this->profiles[$cid]['span'] = GlobalTracer::get()->startSpan('httpRequest',
                 [
-                    'child_of' => \Swoft::getBean(TracerManager::class)->getServerSpan(),
+                    'child_of' => TracerManager::getServerSpan(),
                     'tags' => $tags
                 ]);
         } else {
+            /** @var ResponseInterface $response */
+            $response = $event->getParams()[0];
+
+            $this->profiles[$cid]['span']->log([
+                Tags\HTTP_STATUS_CODE => $response->getStatusCode()
+            ]);
             $this->profiles[$cid]['span']->finish();
         }
 

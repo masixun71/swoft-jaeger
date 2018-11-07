@@ -30,7 +30,7 @@ class JaegerRedisListener implements EventHandlerInterface
      */
     public function handle(EventInterface $event)
     {
-        if (empty(\Swoft::getBean(TracerManager::class)->getServerSpan()))
+        if (empty(TracerManager::getServerSpan()))
         {
             return;
         }
@@ -48,7 +48,7 @@ class JaegerRedisListener implements EventHandlerInterface
 
             $this->profiles[$cid]['span'] = GlobalTracer::get()->startSpan('redis',
                 [
-                    'child_of' => \Swoft::getBean(TracerManager::class)->getServerSpan(),
+                    'child_of' => TracerManager::getServerSpan(),
                     'tags' => $tag
                 ]);
         } else {

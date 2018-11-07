@@ -3,75 +3,95 @@ declare(strict_types=1);
 
 namespace ExtraSwoft\Jaeger\Manager;
 
+use ExtraSwoft\Jaeger\Sampler\SwooleProbabilisticSampler;
 use Jaeger\Config;
-use Jaeger\Sampler\ProbabilisticSampler;
 use const OpenTracing\Formats\TEXT_MAP;
 use OpenTracing\GlobalTracer;
 use Swoft\Bean\Annotation\Bean;
 use Swoft\Bean\Annotation\Value;
 use Swoft\Core\Coroutine;
+use Swoft\Core\RequestContext;
 
 /**
- * @Bean()
  * Class TracerManager
  */
 class TracerManager
 {
 
-    protected $serverSpans = [];
+    protected static $serverSpans = [];
+    protected static $configs = [];
 
-    /** @var Config $config */
-    protected $config;
-
-    public function init()
+    public static function init()
     {
-        $config = Config::getInstance();
-        $config->setSampler(new ProbabilisticSampler(env('JAEGER_RATE')));
-        $tracer = $config->initTrace(env('PNAME'), env('JAEGER_SERVER_HOST'));
+        $cid = Coroutine::tid();
+        if (isset(self::$configs[$cid]))
+        {
+            return;
+        } else {
+            $config = Config::getInstance();
+            $config->setSampler(new SwooleProbabilisticSampler(env('JAEGER_RATE'), self::getIp(), env('HTTP_PORT')));
+            $tracer = $config->initTrace(env('PNAME'), env('JAEGER_SERVER_HOST'));
 
-        GlobalTracer::set($tracer); // optional
-        $this->config = $config;
+            GlobalTracer::set($tracer); // optional
+            self::$configs[$cid] = $config;
+            return;
+        }
     }
 
 
-    public function setServerSpan($span)
+    public static function setServerSpan($span)
     {
         $cid = Coroutine::tid();
 
-        $this->serverSpans[$cid] = $span;
+        self::$serverSpans[$cid] = $span;
     }
 
-    public function getServerSpan()
+    public static function getServerSpan()
     {
         $cid = Coroutine::tid();
 
-        if (!isset($this->serverSpans[$cid]))
+        if (!isset(self::$serverSpans[$cid]))
         {
             return null;
         }
 
-        return $this->serverSpans[$cid];
+        self::$serverSpans[$cid];
     }
 
 
-    public function getHeader()
+    public static function getHeader()
     {
         $headers = [];
         $cid = Coroutine::tid();
-        GlobalTracer::get()->inject($this->serverSpans[$cid]->getContext(), TEXT_MAP,
+        GlobalTracer::get()->inject(self::$serverSpans[$cid]->getContext(), TEXT_MAP,
             $headers);
 
         return $headers;
     }
 
 
-    public function flush()
+    public static function flush()
     {
-        $config = $this->config;
+        $cid = Coroutine::tid();
+        $config = self::$configs[$cid];
         swoole_timer_after(1000, function () use ($config) {
             $config->flush();
         });
     }
 
+
+    private static function getIp()
+    {
+        $result = shell_exec("/sbin/ifconfig");
+        if (preg_match_all("/inet (\d+\.\d+\.\d+\.\d+)/", $result, $match) !== 0)  // 这里根据你机器的具体情况， 可能要对“inet ”进行调整， 如“addr:”，看如下注释掉的if
+        {
+            foreach ($match [0] as $k => $v) {
+                if ($match [1] [$k] != "127.0.0.1") {
+                    return $match[1][$k];
+                }
+            }
+        }
+        return '127.0.0.1';
+    }
 
 }

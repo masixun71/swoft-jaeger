@@ -30,27 +30,29 @@ class JaegerMysqlListener implements EventHandlerInterface
      */
     public function handle(EventInterface $event)
     {
-        if (empty(\Swoft::getBean(TracerManager::class)->getServerSpan()))
+
+        if (empty(TracerManager::getServerSpan()))
         {
             return;
         }
-
         $profileKey = $event->getParams()[0];
         $cid = Coroutine::tid();
         if ($event->getTarget() == 'start') {
             $sql = $event->getParams()[1];
 
             $tag = [
-                'profileKey' => $profileKey,
                 'sql' => $sql
             ];
 
 
             $this->profiles[$cid][$profileKey]['span'] = GlobalTracer::get()->startSpan('mysql',
                 [
-                    'child_of' => \Swoft::getBean(TracerManager::class)->getServerSpan(),
+                    'child_of' => TracerManager::getServerSpan(),
                     'tags' => $tag
                 ]);
+            $this->profiles[$cid][$profileKey]['span']->log([
+                'profileKey' => $profileKey,
+            ]);
         } else {
 
             $this->profiles[$cid][$profileKey]['span']->finish();
