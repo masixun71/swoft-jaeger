@@ -11,7 +11,7 @@
     "description": "jaeger-sdk for swoft",
     "license": "Apache-2.0",
     "require": {
-        "jukylin/jaeger-php" : "^2.0",
+        "jukylin/jaeger-php" : "v2.0.4-beta",
         "opentracing/opentracing":"1.0.0-beta2",
         "psr/http-server-handler": "*"
     },
