@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace ExtraSwoft\Jaeger\Manager;
 
 use ExtraSwoft\Jaeger\Sampler\SwooleProbabilisticSampler;
+use ExtraSwoft\Jaeger\Transport\JaegerTransportUdp;
 use Jaeger\Config;
 use const OpenTracing\Formats\TEXT_MAP;
 use OpenTracing\GlobalTracer;
@@ -30,6 +31,7 @@ class TracerManager
         } else {
             $config = Config::getInstance();
             $config->setSampler(new SwooleProbabilisticSampler(env('JAEGER_RATE'), self::getIp(), env('HTTP_PORT')));
+            $config->setTransport(new JaegerTransportUdp(env('JAEGER_SERVER_HOST'), 8000));
             $tracer = $config->initTrace(env('PNAME'), env('JAEGER_SERVER_HOST'));
 
             GlobalTracer::set($tracer); // optional
