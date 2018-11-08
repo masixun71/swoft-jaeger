@@ -57,7 +57,7 @@ class TracerManager
             return null;
         }
 
-        self::$serverSpans[$cid];
+        return self::$serverSpans[$cid];
     }
 
 
