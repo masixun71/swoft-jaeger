@@ -51,6 +51,7 @@ class JaegerMiddleware implements MiddlewareInterface
         GlobalTracer::get()->inject($span->getContext(), TEXT_MAP,
             RequestContext::getRequest()->getSwooleRequest()->header);
 
+        $span->setTags(RequestContext::getRequest()->getSwooleRequest()->server);
         $this->tracerManager->setServerSpan($span);
 
 
