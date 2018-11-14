@@ -36,7 +36,8 @@ class JaegerRedisListener implements EventHandlerInterface
      */
     public function handle(EventInterface $event)
     {
-        if (empty($this->tracerManager->getServerSpan()))
+        $serverSpan = $this->tracerManager->getServerSpan();
+        if (empty($serverSpan))
         {
             return;
         }
@@ -54,7 +55,7 @@ class JaegerRedisListener implements EventHandlerInterface
 
             $this->profiles[$cid]['span'] = GlobalTracer::get()->startSpan('redis',
                 [
-                    'child_of' => $this->tracerManager->getServerSpan(),
+                    'child_of' => $serverSpan,
                     'tags' => $tag
                 ]);
         } else {

@@ -37,6 +37,7 @@ class JaegerHttpClientListener implements EventHandlerInterface
      */
     public function handle(EventInterface $event)
     {
+        $serverSpan = $this->tracerManager->getServerSpan();
         if (empty($this->tracerManager->getServerSpan()))
         {
             return;
@@ -67,7 +68,7 @@ class JaegerHttpClientListener implements EventHandlerInterface
 
             $this->profiles[$cid]['span'] = GlobalTracer::get()->startSpan('httpRequest',
                 [
-                    'child_of' => $this->tracerManager->getServerSpan(),
+                    'child_of' => $serverSpan,
                     'tags' => $tags
                 ]);
         } else {
