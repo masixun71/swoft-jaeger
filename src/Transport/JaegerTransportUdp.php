@@ -73,6 +73,9 @@ class JaegerTransportUdp implements Transport
         if($jaeger->process == null){
             $this->buildAndCalcSizeOfProcessThrift($jaeger);
         }
+        if($this->bufferSize == $this->procesSize) {
+            $jaeger->spanThrifts = [];
+        }
 
         foreach($jaeger->spans as $span){
 
