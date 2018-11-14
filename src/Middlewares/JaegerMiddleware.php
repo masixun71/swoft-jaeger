@@ -8,6 +8,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Swoft\App;
 use Swoft\Bean\Annotation\Bean;
+use Swoft\Bean\Annotation\Inject;
 use Swoft\Core\RequestContext;
 use Swoft\Http\Message\Middleware\MiddlewareInterface;
 use Swoft\Http\Message\Uri\Uri;
@@ -21,6 +22,13 @@ class JaegerMiddleware implements MiddlewareInterface
 {
 
     /**
+     * @Inject()
+     * @var TracerManager
+     */
+    private $tracerManager;
+
+
+    /**
      * Process an incoming server request and return a response, optionally delegating
      * response creation to a handler.
      *
@@ -31,7 +39,7 @@ class JaegerMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        TracerManager::init();
+
         $spanContext = GlobalTracer::get()->extract(
             TEXT_MAP,
             RequestContext::getRequest()->getSwooleRequest()->header
@@ -40,13 +48,13 @@ class JaegerMiddleware implements MiddlewareInterface
         GlobalTracer::get()->inject($span->getContext(), TEXT_MAP,
             RequestContext::getRequest()->getSwooleRequest()->header);
 
-        TracerManager::setServerSpan($span);
+        $this->tracerManager->setServerSpan($span);
 
 
         $response = $handler->handle($request);
 
         $span->finish();
-        TracerManager::flush();
+        $this->tracerManager->flush();
 
         return $response;
     }

@@ -6,6 +6,7 @@ namespace ExtraSwoft\Jaeger\Listener;
 use OpenTracing\Ext\Tags;
 use ExtraSwoft\Jaeger\Manager\TracerManager;
 use OpenTracing\GlobalTracer;
+use Swoft\Bean\Annotation\Inject;
 use Swoft\Bean\Annotation\Listener;
 use Swoft\Core\Coroutine;
 use Swoft\Event\EventHandlerInterface;
@@ -24,7 +25,11 @@ class JaegerHttpClientListener implements EventHandlerInterface
 {
 
     protected $profiles = [];
-
+    /**
+     * @Inject()
+     * @var TracerManager
+     */
+    private $tracerManager;
 
     /**
      * @param EventInterface $event
@@ -32,7 +37,7 @@ class JaegerHttpClientListener implements EventHandlerInterface
      */
     public function handle(EventInterface $event)
     {
-        if (empty(TracerManager::getServerSpan()))
+        if (empty($this->tracerManager->getServerSpan()))
         {
             return;
         }
@@ -62,7 +67,7 @@ class JaegerHttpClientListener implements EventHandlerInterface
 
             $this->profiles[$cid]['span'] = GlobalTracer::get()->startSpan('httpRequest',
                 [
-                    'child_of' => TracerManager::getServerSpan(),
+                    'child_of' => $this->tracerManager->getServerSpan(),
                     'tags' => $tags
                 ]);
         } else {

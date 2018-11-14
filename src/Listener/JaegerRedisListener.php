@@ -6,6 +6,7 @@ namespace ExtraSwoft\Jaeger\Listener;
 
 use ExtraSwoft\Jaeger\Manager\TracerManager;
 use OpenTracing\GlobalTracer;
+use Swoft\Bean\Annotation\Inject;
 use Swoft\Bean\Annotation\Listener;
 use Swoft\Core\Coroutine;
 use Swoft\Event\EventHandlerInterface;
@@ -23,6 +24,11 @@ class JaegerRedisListener implements EventHandlerInterface
 
     protected $profiles = [];
 
+    /**
+     * @Inject()
+     * @var TracerManager
+     */
+    private $tracerManager;
 
     /**
      * @param EventInterface $event
@@ -30,7 +36,7 @@ class JaegerRedisListener implements EventHandlerInterface
      */
     public function handle(EventInterface $event)
     {
-        if (empty(TracerManager::getServerSpan()))
+        if (empty($this->tracerManager->getServerSpan()))
         {
             return;
         }
@@ -48,7 +54,7 @@ class JaegerRedisListener implements EventHandlerInterface
 
             $this->profiles[$cid]['span'] = GlobalTracer::get()->startSpan('redis',
                 [
-                    'child_of' => TracerManager::getServerSpan(),
+                    'child_of' => $this->tracerManager->getServerSpan(),
                     'tags' => $tag
                 ]);
         } else {
