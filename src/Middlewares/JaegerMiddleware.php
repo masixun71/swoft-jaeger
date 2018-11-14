@@ -13,7 +13,7 @@ use Swoft\Core\RequestContext;
 use Swoft\Http\Message\Middleware\MiddlewareInterface;
 use Swoft\Http\Message\Uri\Uri;
 use OpenTracing\GlobalTracer;
-
+use Jaeger\Constants;
 
 /**
  * @Bean()
@@ -40,9 +40,12 @@ class JaegerMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
 
+        $headers = RequestContext::getRequest()->getSwooleRequest()->header;
+        if (isset($headers[Constants\Tracer_State_Header_Name])) {
+            $headers[strtoupper(Constants\Tracer_State_Header_Name)] = $headers[Constants\Tracer_State_Header_Name];
+        }
         $spanContext = GlobalTracer::get()->extract(
-            TEXT_MAP,
-            RequestContext::getRequest()->getSwooleRequest()->header
+            TEXT_MAP,$headers
         );
         $span = GlobalTracer::get()->startSpan('server', ['child_of' => $spanContext]);
         GlobalTracer::get()->inject($span->getContext(), TEXT_MAP,
