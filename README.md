@@ -4,7 +4,7 @@
 
 
 # 简介
-本项目属于swoft的jaeger client,非侵入式地对项目环境进行跟踪并且异步上报到jaeger server,可以和其他的swoft项目或者其他语言（java，go）进行全链路监控。并且上传是使用`thrift`，udp 上传，效率较高。
+本项目属于swoft的jaeger client,非侵入式地对项目环境进行跟踪并且异步上报到jaeger server,可以和其他的swoft项目或者其他语言（java，go）进行全链路监控,能监控`mysql`,`redis`,`httpClient`的正常异常情况。并且上传是使用`thrift`，udp 上传，效率较高。
 
 之前我还写过zipkin的sdk，链接如下[swoft-zipkin](https://github.com/masixun71/swoft-zipkin)
 
@@ -101,7 +101,7 @@ $client = new Client(['adapter' => new AddJaegerAdapter()]);
          $this->release();
 
          Log::profileEnd($this->profileKey);
-+        App::trigger('Mysql', 'end', $this->profileKey);
++        App::trigger('Mysql', 'end', $this->profileKey, true);
          return $result;
 ```
 
@@ -118,7 +118,7 @@ $client = new Client(['adapter' => new AddJaegerAdapter()]);
 +        App::trigger('Redis', 'start', $method, $params);
          $result     = $connection->$method(...$params);
          $connection->release(true);
-+        App::trigger('Redis', 'end');
++        App::trigger('Redis', 'end', true);
 
          return $result;
 ```
@@ -148,19 +148,48 @@ $client = new Client(['adapter' => new AddJaegerAdapter()]);
 
         return $response;
 ```
+# 捕获异常
+
+在全局的`SwoftExceptionHandler.php`里面添加对`MysqlException`和`RedisException`异常的钩子，保证我们能把异常的情况也上报了
+
+```php
+else if ($throwable instanceof MysqlException) {
+        App::trigger('Mysql', 'end', 'all', false, $throwable->getMessage());
+} else if ($throwable instanceof RedisException) {
+        App::trigger('Redis', 'end' , false, $throwable->getMessage());
+}
+```
+
 
 
 
 # 完成
 ## 完成以上修改后，重新composer引入新的`swoft-component`包，然后重启项目就可以了
 
+
+# 获取header
+
+因为链路传递是通过header来服务的，所以项目里面当有特殊的client时，想要获取header来传递可以使用下面方法
+
+```php
+\Swoft::getBean(TracerManager::class)->getHeader();
+```
+
+
 # Jaeger 的搭建
 
-这部分我会单独写一篇文章讲解，稍后放链接，当然也可以用最简单的方式，仅限测试
+我把我的搭建心得都放在了下面这篇文章里面了
+[全链路监控Jaeger搭建实战](https://www.jianshu.com/p/ffc597bb4ce8)
 
+但是如果你懒得看，也可以直接用下面的
 ```php
 docker run -d -e COLLECTOR_ZIPKIN_HTTP_PORT=9411 -p5775:5775/udp -p6831:6831/udp -p6832:6832/udp \
   -p5778:5778 -p16686:16686 -p14268:14268 -p9411:9411 jaegertracing/all-in-one:latest
 ```
 
-直接起就搭建完成了
+直接起就搭建完成了，默认client 接受端口是6831
+
+
+
+## 效果图
+

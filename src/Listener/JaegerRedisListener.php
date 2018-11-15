@@ -59,8 +59,17 @@ class JaegerRedisListener implements EventHandlerInterface
                     'tags' => $tag
                 ]);
         } else {
-
-            $this->profiles[$cid]['span']->finish();
+            $params = $event->getParams();
+            if ((bool)$params[0]) {
+                $this->profiles[$cid]['span']->finish();
+            } else {
+                $this->profiles[$cid]['span']->setTags([
+                    'error' => true,
+                    'error.msg' => $params[1]
+                ]);
+                $this->profiles[$cid]['span']->finish();
+                \Swoft::getBean(TracerManager::class)->flush();
+            }
         }
 
     }

@@ -60,8 +60,19 @@ class JaegerMysqlListener implements EventHandlerInterface
                 'profileKey' => $profileKey,
             ]);
         } else {
-
-            $this->profiles[$cid][$profileKey]['span']->finish();
+            $params = $event->getParams();
+            if ((bool)$params[1]) {
+                $this->profiles[$cid][$profileKey]['span']->finish();
+            } else {
+                foreach ($this->profiles[$cid] as $v) {
+                    $v['span']->setTags([
+                        'error' => true,
+                        'error.msg' => $params[2]
+                    ]);
+                    $v['span']->finish();
+                }
+                \Swoft::getBean(TracerManager::class)->flush();
+            }
         }
 
     }
