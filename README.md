@@ -1,4 +1,4 @@
-![](https://img.shields.io/badge/version-v0.0.0.3-red.svg)
+![](https://img.shields.io/badge/version-v0.0.0.4-red.svg)
 ![](https://img.shields.io/badge/php-%3E=7.1-orange.svg)
 ![](https://img.shields.io/badge/swoole-%3E=4.0-blue.svg)
 
@@ -192,4 +192,4 @@ docker run -d -e COLLECTOR_ZIPKIN_HTTP_PORT=9411 -p5775:5775/udp -p6831:6831/udp
 
 
 ## 效果图
-
+![jaegerUI.png](https://upload-images.jianshu.io/upload_images/12890383-a2325b3862926a22.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
