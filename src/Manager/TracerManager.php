@@ -41,19 +41,19 @@ class TracerManager
     {
         $cid = Coroutine::tid();
 
-        $this->$serverSpans[$cid] = $span;
+        $this->serverSpans[$cid] = $span;
     }
 
     public function getServerSpan()
     {
         $cid = Coroutine::tid();
 
-        if (!isset($this->$serverSpans[$cid]))
+        if (!isset($this->serverSpans[$cid]))
         {
             return null;
         }
 
-        return $this->$serverSpans[$cid];
+        return $this->serverSpans[$cid];
     }
 
 
@@ -61,7 +61,7 @@ class TracerManager
     {
         $headers = [];
         $cid = Coroutine::tid();
-        GlobalTracer::get()->inject($this->$serverSpans[$cid]->getContext(), TEXT_MAP,
+        GlobalTracer::get()->inject($this->serverSpans[$cid]->getContext(), TEXT_MAP,
             $headers);
 
         return $headers;
