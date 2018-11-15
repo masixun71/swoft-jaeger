@@ -75,6 +75,12 @@ class JaegerHttpClientListener implements EventHandlerInterface
             /** @var ResponseInterface $response */
             $response = $event->getParams()[0];
 
+            $responseCode = $response->getStatusCode();
+            if ($responseCode > 300) {
+                $this->profiles[$cid]['span']->setTags([
+                    'error' => true
+                ]);
+            }
             $this->profiles[$cid]['span']->log([
                 Tags\HTTP_STATUS_CODE => $response->getStatusCode()
             ]);
