@@ -59,12 +59,15 @@ composer require extraswoft/jaeger
 
 ##### ZIPKIN_RAND:  采样率，1为100%, 最小可设为0.0001，线上环境建议采样
 
+##### ENV:  配置环境，通过配置环境可以共用一个jaegerServer
+
 
 
 ```php
  #jaeger
 JAEGER_RATE=1
 JAEGER_SERVER_HOST=172.21.134.20:6831
+ENV=test
 ```
 
 ## 5.httpClient 的修改

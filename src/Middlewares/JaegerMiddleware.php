@@ -52,6 +52,10 @@ class JaegerMiddleware implements MiddlewareInterface
             RequestContext::getRequest()->getSwooleRequest()->header);
 
         $span->setTags(RequestContext::getRequest()->getSwooleRequest()->server);
+        $span->setTags([
+            'env' => env('ENV', 'local')
+        ]);
+
         $this->tracerManager->setServerSpan($span);
 
 
