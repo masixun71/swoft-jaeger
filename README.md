@@ -1,10 +1,11 @@
-![](https://img.shields.io/badge/version-v0.0.0.6-red.svg)
+![](https://img.shields.io/badge/version-v0.0.0.7-red.svg)
 ![](https://img.shields.io/badge/php-%3E=7.1-orange.svg)
 ![](https://img.shields.io/badge/swoole-%3E=4.0-blue.svg)
 
 
 # 简介
 本项目属于swoft的jaeger client,非侵入式地对项目环境进行跟踪并且异步上报到jaeger server,可以和其他的swoft项目或者其他语言（java，go）进行全链路监控,能监控`mysql`,`redis`,`httpClient`的正常异常情况。并且上传是使用`thrift`，udp 上传，效率较高。
+目前新版本(v0.0.0.7以上)支持log记录，不使用udp，提高效率
 
 之前我还写过zipkin的sdk，链接如下[swoft-zipkin](https://github.com/masixun71/swoft-zipkin)
 
@@ -61,12 +62,18 @@ composer require extraswoft/jaeger
 
 ##### ENV:  配置环境，通过配置环境可以共用一个jaegerServer
 
+##### JAEGER_OPEN:  是否开启jaeger，可不同环境不同配置
+
+##### JAEGER_MODE:  1:使用udp传输，2:写入日志，日志依赖 `@log` 的配置(小时区分日志)
+
 
 
 ```php
  #jaeger
 JAEGER_RATE=1
 JAEGER_SERVER_HOST=172.21.134.20:6831
+JAEGER_OPEN=true
+JAEGER_MODE=2
 ENV=test
 ```
 

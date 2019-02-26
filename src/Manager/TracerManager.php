@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace ExtraSwoft\Jaeger\Manager;
 
 use ExtraSwoft\Jaeger\Sampler\SwooleProbabilisticSampler;
+use ExtraSwoft\Jaeger\Transport\JaegerTransportLog;
 use ExtraSwoft\Jaeger\Transport\JaegerTransportUdp;
 use Jaeger\Config;
 use const OpenTracing\Formats\TEXT_MAP;
@@ -29,8 +30,16 @@ class TracerManager
     {
         $config = Config::getInstance();
         $config->setSampler(new SwooleProbabilisticSampler(env('JAEGER_RATE'), $this->getIp(), env('HTTP_PORT')));
-        $config->setTransport(new JaegerTransportUdp(env('JAEGER_SERVER_HOST'), 8000));
-        $tracer = $config->initTrace(env('PNAME'), env('JAEGER_SERVER_HOST'));
+
+        $mode = env('JAEGER_MODE');
+        if ($mode == 1) {
+            $config->setTransport(new JaegerTransportUdp(env('JAEGER_SERVER_HOST'), 8000));
+        } elseif ($mode == 2) {
+            $config->setTransport(new JaegerTransportLog());
+        } else {
+            throw new \Exception("jaeger's mode is not set");
+        }
+        $tracer = $config->initTrace(env('PNAME'));
 
         GlobalTracer::set($tracer); // optional
         $this->configs = $config;

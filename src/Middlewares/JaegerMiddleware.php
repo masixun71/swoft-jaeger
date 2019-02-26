@@ -39,31 +39,35 @@ class JaegerMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        if (env('JAEGER_OPEN')) {
 
-        $headers = RequestContext::getRequest()->getSwooleRequest()->header;
-        if (isset($headers[Constants\Tracer_State_Header_Name])) {
-            $headers[strtoupper(Constants\Tracer_State_Header_Name)] = $headers[Constants\Tracer_State_Header_Name];
+            $headers = RequestContext::getRequest()->getSwooleRequest()->header;
+            if (isset($headers[Constants\Tracer_State_Header_Name])) {
+                $headers[strtoupper(Constants\Tracer_State_Header_Name)] = $headers[Constants\Tracer_State_Header_Name];
+            }
+            $spanContext = GlobalTracer::get()->extract(
+                TEXT_MAP,$headers
+            );
+            $span = GlobalTracer::get()->startSpan('server', ['child_of' => $spanContext]);
+            GlobalTracer::get()->inject($span->getContext(), TEXT_MAP,
+                RequestContext::getRequest()->getSwooleRequest()->header);
+
+            $span->setTags(RequestContext::getRequest()->getSwooleRequest()->server);
+            $span->setTags([
+                'env' => env('ENV', 'local')
+            ]);
+
+            $this->tracerManager->setServerSpan($span);
+
+
+            $response = $handler->handle($request);
+
+            $span->finish();
+            $this->tracerManager->flush();
+
+            return $response;
+        } else {
+            return $handler->handle($request);
         }
-        $spanContext = GlobalTracer::get()->extract(
-            TEXT_MAP,$headers
-        );
-        $span = GlobalTracer::get()->startSpan('server', ['child_of' => $spanContext]);
-        GlobalTracer::get()->inject($span->getContext(), TEXT_MAP,
-            RequestContext::getRequest()->getSwooleRequest()->header);
-
-        $span->setTags(RequestContext::getRequest()->getSwooleRequest()->server);
-        $span->setTags([
-            'env' => env('ENV', 'local')
-        ]);
-
-        $this->tracerManager->setServerSpan($span);
-
-
-        $response = $handler->handle($request);
-
-        $span->finish();
-        $this->tracerManager->flush();
-
-        return $response;
     }
 }
