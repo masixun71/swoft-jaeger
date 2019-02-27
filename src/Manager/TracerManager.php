@@ -31,7 +31,7 @@ class TracerManager
         $config = Config::getInstance();
         $config->setSampler(new SwooleProbabilisticSampler(env('JAEGER_RATE'), $this->getIp(), env('HTTP_PORT')));
 
-        $mode = env('JAEGER_MODE');
+        $mode = env('JAEGER_MODE', 1);
         if ($mode == 1) {
             $config->setTransport(new JaegerTransportUdp(env('JAEGER_SERVER_HOST'), 8000));
         } elseif ($mode == 2) {
