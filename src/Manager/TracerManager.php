@@ -80,8 +80,10 @@ class TracerManager
     public function flush()
     {
         $config = $this->configs;
-        swoole_timer_after(1000, function () use ($config) {
+        $cid = Coroutine::tid();
+        swoole_timer_after(1000, function () use ($config, $cid) {
             $config->flush();
+            unset($this->serverSpans[$cid]);
         });
     }
 
