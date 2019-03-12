@@ -37,7 +37,8 @@ class LogClient{
         if(isset($buildThrift['len']) && $buildThrift['len'] && $this->isOpen()) {
             $len = $buildThrift['len'];
             $enitThrift = $buildThrift['thriftStr'];
-            $this->aysncWrite($enitThrift);
+            $str = str_replace(array("\n"), '\rn', $enitThrift);
+            $this->aysncWrite($str);
             return true;
         }else{
             return false;

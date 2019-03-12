@@ -177,6 +177,12 @@ else if ($throwable instanceof MysqlException) {
 ## 完成以上修改后，重新composer引入新的`swoft-component`包，然后重启项目就可以了
 
 
+# log记录
+
+新版本支持将数据写入log，但由于原生字符串包含换行符，导致写入日志变成多行而不是一行，所以在写入日志时
+会把所有`\n`都替换成`\rn`,如果对这些日志数据有使用，需要记得重新替换为`\n`
+
+
 # 获取header
 
 因为链路传递是通过header来服务的，所以项目里面当有特殊的client时，想要获取header来传递可以使用下面方法
