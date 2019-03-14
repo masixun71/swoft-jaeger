@@ -35,7 +35,7 @@ class TracerManager
         if ($mode == 1) {
             $config->setTransport(new JaegerTransportUdp(env('JAEGER_SERVER_HOST'), 8000));
         } elseif ($mode == 2) {
-            $config->setTransport(new JaegerTransportLog(8000));
+            $config->setTransport(new JaegerTransportLog(4000));
         } else {
             throw new \Exception("jaeger's mode is not set");
         }
