@@ -54,7 +54,7 @@ class LogClient{
     private function aysncWrite(string $messageText)
     {
         while (true) {
-            $result = \Swoole\Async::writeFile($this->logFile, $messageText);
+            $result = \Swoole\Async::writeFile($this->logFile, $messageText, null, FILE_APPEND);
             if ($result == true) {
                 break;
             }
