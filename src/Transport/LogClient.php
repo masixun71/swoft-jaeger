@@ -37,7 +37,7 @@ class LogClient{
         if(isset($buildThrift['len']) && $buildThrift['len'] && $this->isOpen()) {
             $len = $buildThrift['len'];
             $enitThrift = $buildThrift['thriftStr'];
-            $str = date("Y-m-d-H:i:s") . ':' . $enitThrift;
+            $str = urlencode($enitThrift);
             $this->aysncWrite($str);
             return true;
         }else{
