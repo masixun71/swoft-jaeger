@@ -180,7 +180,7 @@ else if ($throwable instanceof MysqlException) {
 # log记录
 
 新版本支持将数据写入log，但由于原生字符串包含换行符，导致写入日志变成多行而不是一行，所以在写入日志时
-会把所有`\n`都替换成`\rn`,如果对这些日志数据有使用，需要记得重新替换为`\n`
+会特殊处理,  变为: 'jaegerMsg:' . urlencode($thriftFile) . "\n"
 
 
 # 获取header

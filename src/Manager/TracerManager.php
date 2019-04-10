@@ -70,10 +70,15 @@ class TracerManager
     {
         $headers = [];
         $cid = Coroutine::tid();
-        GlobalTracer::get()->inject($this->serverSpans[$cid]->getContext(), TEXT_MAP,
-            $headers);
+        if (isset($this->serverSpans[$cid])) {
+            GlobalTracer::get()->inject($this->serverSpans[$cid]->getContext(), TEXT_MAP,
+                $headers);
 
-        return $headers;
+            return $headers;
+        } else {
+            return [];
+        }
+
     }
 
 
